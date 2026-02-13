@@ -32,6 +32,8 @@ private:
     std::map<int, std::vector<tiled_world_tileset_origin_data>> tilesetLayers;
     std::vector<tiled_world_tileset_data> tilesetsInfo;
     std::vector<QPixmap> tilesetImages;
+    std::map<int, QPixmap> imageLayerImagesMap;
+    tiled_world_map_properties map_properties;
 
 
 signals:

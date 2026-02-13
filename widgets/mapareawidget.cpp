@@ -16,6 +16,7 @@ void MapAreaWidget::loadMapData()
 {
     std::string mapFilename = "/home/iuri/Desenvolvimento/firefly/build/games/FireFly/data/tiled/swamp.tmx";
     worldLoader.loadMap(mapFilename);
+    map_properties = worldLoader.getMapProperties();
     layers = worldLoader.getMapLayers();
     imageLayers = worldLoader.getMapImageLayers();
     tilesetLayers = worldLoader.getMapTilesetLayers();
@@ -28,13 +29,40 @@ void MapAreaWidget::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     QLineF line;
 
+    // DRAW BACKGROUND COLOR //
+    painter.fillRect(QRectF(0.0, 0.0, map_properties.map_w * TILESIZE * zoom, map_properties.map_h * TILESIZE * zoom), QColor(map_properties.bg_color.r, map_properties.bg_color.g, map_properties.bg_color.b, 255));
+
+    // DRAW LAYERS //
+    for (const auto& layer : layers) {
+        if (layer.second == e_tiled_world_layer_type_image) {
+            tiled_world_image_layer_data image_layer_data = imageLayers.at(layer.first);
+
+            QPixmap image = imageLayerImagesMap.at(layer.first);
+            // TODO - repeat
+            QRectF target(QPoint(image_layer_data.shift_x * zoom, image_layer_data.shift_y * zoom), QSize(image.size().width() * zoom, image.size().height() * zoom));
+            QRectF source(QPoint(0, 0), QSize(image.size().width(), image.size().height()));
+            painter.drawPixmap(target, image, source);
+        } else if (layer.second == e_tiled_world_layer_type_tileset) {
+            std::vector<tiled_world_tileset_origin_data> tileLayer =  tilesetLayers.at(layer.first);
+            for (auto const& tile : tileLayer) {
+                int tilesetNumber = findTilesetByTileNumber(tile.tile_pos);
+                if (tilesetNumber < tilesetImages.size() && !tilesetImages.empty()) {
+                    QRectF target(QPoint(tile.dest_x * zoom, tile.dest_y * zoom), QSize(tile.w * zoom, tile.h * zoom));
+                    QRectF source(QPoint(tile.origin_x, tile.origin_y), QSize(tile.w, tile.h));
+                    painter.drawPixmap(target, tilesetImages.at(tilesetNumber), source);
+                } else {
+                    std::cout << "ERROR: tilesetNumber[" << tilesetNumber << "] is greater than the total number of tilesets images [" << tilesetImages.size() << "]" << std::endl;
+                }
+            }
+        }
+    }
+
+    /*
     // DRAW TILES //
-    std::cout << "### BEGIN #####################################################" << std::endl;
     for (auto const& tileLayer : tilesetLayers) {
         for (auto const& tile : tileLayer.second) {
             int tilesetNumber = findTilesetByTileNumber(tile.tile_pos);
             if (tilesetNumber < tilesetImages.size() && !tilesetImages.empty()) {
-                std::cout << "tileset dest[" << tile.dest_x << "][" << tile.dest_y << "], origin[" << tile.origin_x << "][" << tile.origin_y << "], tilesetNumber[" << tilesetNumber << "]" << std::endl;
                 QRectF target(QPoint(tile.dest_x * zoom, tile.dest_y * zoom), QSize(tile.w * zoom, tile.h * zoom));
                 QRectF source(QPoint(tile.origin_x, tile.origin_y), QSize(tile.w, tile.h));
                 painter.drawPixmap(target, tilesetImages.at(tilesetNumber), source);
@@ -43,7 +71,7 @@ void MapAreaWidget::paintEvent(QPaintEvent *event)
             }
         }
     }
-    std::cout << "### END #####################################################" << std::endl;
+    */
 
     // DRAW GRID //
     QPen pen(QColor(160, 160, 160), 1, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin);
@@ -77,7 +105,7 @@ void MapAreaWidget::loadMapImages()
 {
     // TODO
     //std::string FILEPATH =
-    for (tiled_world_tileset_data tileset_data : tilesetsInfo) {
+    for (const tiled_world_tileset_data& tileset_data : tilesetsInfo) {
         //std::string filename = FILEPATH + "/images/sprites/objects/" + Mediator::get_instance()->object_list.at(obj_id).graphic_filename;
 
         QPixmap temp_image(tileset_data.filename.c_str());
@@ -88,6 +116,10 @@ void MapAreaWidget::loadMapImages()
         }
         tilesetImages.emplace_back(temp_image);
     }
+
+    for (const auto& layer : imageLayers) {
+        imageLayerImagesMap[layer.first] = QPixmap(layer.second.image_filename.c_str());
+    }
 }
 
 int MapAreaWidget::findTilesetByTileNumber(int tileNumber) const
@@ -97,5 +129,5 @@ int MapAreaWidget::findTilesetByTileNumber(int tileNumber) const
             return i;
         }
     }
-    return tilesetsInfo.size()-1;
+    return tilesetsInfo.size() - 1;
 }
