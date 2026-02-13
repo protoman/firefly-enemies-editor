@@ -2,22 +2,37 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "enemy/enemyedit.h"
 
-QT_BEGIN_NAMESPACE
+enum e_editMode {
+    e_editMode_ENEMY,
+    e_editMode_NPC,
+    e_editMode_OBJECT
+};
+
 namespace Ui {
 class MainWindow;
 }
-QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
+private slots:
+    void on_actionEnemy_Editor_triggered();
+
+    void on_actionPlace_Enemy_triggered();
+
+    void on_actionPlace_Object_triggered();
 
 private:
     Ui::MainWindow *ui;
+    EnemyEdit enemyEdit;
+    e_editMode editMode = e_editMode_ENEMY;
 };
+
 #endif // MAINWINDOW_H

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(npc VERSION 0.1 LANGUAGES CXX)
+project(FireflyEditor VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -17,32 +17,55 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        enemy/enemyedit.cpp
+        enemy/enemyedit.h
+        enemy/enemyedit.ui
+        widgets/mapareawidget.cpp
+        widgets/mapareawidget.h
+        ../../tiled/TiledWorldLoader.cpp
+        ../../tiled/TiledWorldLoader.hpp
+        ../../defines.h
 )
 
+set(WIDGETS_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/widgets")
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(npc
+    qt_add_executable(FireflyEditor
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
 # Define target properties for Android with Qt 6 as:
-#    set_property(TARGET npc APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+#    set_property(TARGET FireflyEditor APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
-        add_library(npc SHARED
+        add_library(FireflyEditor SHARED
             ${PROJECT_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
-        add_executable(npc
+        add_executable(FireflyEditor
             ${PROJECT_SOURCES}
         )
+
     endif()
 endif()
 
-target_link_libraries(npc PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_include_directories(FireflyEditor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(FireflyEditor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+target_include_directories(FireflyEditor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/widgets)
+
+if(LINUX)
+    target_link_directories(FireflyEditor PRIVATE
+        /usr/local/lib/
+    )
+endif()
+
+target_link_libraries(FireflyEditor PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    tmxlite)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -50,7 +73,7 @@ target_link_libraries(npc PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 if(${QT_VERSION} VERSION_LESS 6.1.0)
   set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.npc)
 endif()
-set_target_properties(npc PROPERTIES
+set_target_properties(FireflyEditor PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
@@ -59,12 +82,12 @@ set_target_properties(npc PROPERTIES
 )
 
 include(GNUInstallDirs)
-install(TARGETS npc
+install(TARGETS FireflyEditor
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(npc)
+    qt_finalize_executable(FireflyEditor)
 endif()
