@@ -48,6 +48,7 @@ else()
     else()
         add_executable(FireflyEditor
             ${PROJECT_SOURCES}
+            icons.qrc
         )
 
     endif()

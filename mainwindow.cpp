@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     toolGroup->addAction(ui->actionPlace_Enemy);
     toolGroup->addAction(ui->actionPlace_Object);
     toolGroup->setExclusive(true); // Only one action can be checked at a time
+    ui->actionPlace_Enemy->setChecked(true);
 }
 
 MainWindow::~MainWindow()
